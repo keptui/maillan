@@ -122,8 +122,8 @@
         <p class="tiny">Minimum 8 characters. You'll be able to change it later.</p>
       </div>
 
-      <!-- honeypot: real users never fill this -->
-      <div class="hp" aria-hidden="true"><label>Website<input id="website" tabindex="-1" autocomplete="off"></label></div>
+      <!-- honeypot: off-screen, no meaningful label/name so autofill leaves it empty -->
+      <div class="hp" aria-hidden="true"><input id="hp_url" name="hp_url" type="text" tabindex="-1" autocomplete="off" placeholder="Leave this field empty"></div>
 
       <button class="btn" id="submit" disabled>Create my inbox →</button>
       <div class="err" id="err"></div>
@@ -168,10 +168,10 @@
 
   // load domains
   fetch(API+'/v1/domains').then(function(r){return r.json();}).then(function(d){
-    (d.domains||['maillan.com']).forEach(function(dom){
-      var o=document.createElement('option'); o.value=dom; o.textContent='@'+dom; o.textContent=dom; domEl.appendChild(o);
-    });
-  }).catch(function(){ var o=document.createElement('option'); o.value='maillan.com'; o.textContent='maillan.com'; domEl.appendChild(o); });
+    var doms=(d.domains&&d.domains.length)?d.domains:null;
+    if(!doms){ errEl.textContent='Signup is temporarily unavailable — please try again shortly.'; errEl.style.display='block'; submitEl.disabled=true; return; }
+    doms.forEach(function(dom){ var o=document.createElement('option'); o.value=dom; o.textContent=dom; domEl.appendChild(o); });
+  }).catch(function(){ errEl.textContent='Could not reach the signup service — please try again shortly.'; errEl.style.display='block'; submitEl.disabled=true; });
 
   function setHint(cls,text,icon){
     hintEl.className='hint '+cls;
@@ -216,7 +216,7 @@
     var pw=$('pw').value;
     if(pw && pw.length<8){ errEl.textContent='Password must be at least 8 characters (or leave it blank).'; errEl.style.display='block'; return; }
     submitEl.disabled=true; submitEl.textContent='Creating…';
-    var body={ address: localEl.value+'@'+domEl.value, website: $('website').value };
+    var body={ address: localEl.value+'@'+domEl.value, hp_url: $('hp_url').value };
     if(pw) body.password=pw;
     fetch(API+'/v1/signup',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)})
       .then(function(r){ return r.json().then(function(j){ return {ok:r.ok,j:j}; }); })
