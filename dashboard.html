@@ -1,0 +1,354 @@
+<title>maillan — dashboard</title>
+<style>
+  :root{
+    --bg:#efeee7;--surface:#fbfbf7;--surface-2:#f5f4ec;--ink:#181d1b;--ink-soft:#4c534e;--ink-faint:#868d87;
+    --line:#ddddd2;--line-soft:#e8e8de;--accent:#0e5b49;--accent-hi:#0a4a3b;--accent-soft:#e2ede8;--accent-ink:#fbfbf7;
+    --seal:#b5762c;--seal-soft:#f2e7d4;
+    --ok:#0e5b49;--ok-soft:#e2ede8;--warn:#9a6a1a;--warn-soft:#f6ecd8;--danger:#a3372e;--danger-soft:#f3e3e0;
+    --shadow:0 1px 2px rgba(24,29,27,.06),0 12px 30px -12px rgba(24,29,27,.16);
+    --shadow-lg:0 2px 6px rgba(24,29,27,.08),0 40px 80px -32px rgba(14,91,73,.28);
+    --serif:"Palatino Linotype",Palatino,"Book Antiqua","URW Palladio L",Georgia,serif;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,"Cascadia Code","SF Mono",Consolas,"Liberation Mono",monospace;
+    --r:14px;--side:248px;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#0d1312;--surface:#151c1a;--surface-2:#101614;--ink:#e8ebe5;--ink-soft:#a7afa8;--ink-faint:#6b736d;
+    --line:#253029;--line-soft:#1c2521;--accent:#3fbc9b;--accent-hi:#58cbac;--accent-soft:#132a24;--accent-ink:#07110d;
+    --seal:#d79c50;--seal-soft:#2a2113;
+    --ok:#3fbc9b;--ok-soft:#132a24;--warn:#d79c50;--warn-soft:#2a2113;--danger:#e08a7f;--danger-soft:#2c1a17;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 14px 34px -14px rgba(0,0,0,.6);
+    --shadow-lg:0 2px 6px rgba(0,0,0,.45),0 44px 90px -34px rgba(0,0,0,.7);
+  }}
+  :root[data-theme="dark"]{--bg:#0d1312;--surface:#151c1a;--surface-2:#101614;--ink:#e8ebe5;--ink-soft:#a7afa8;--ink-faint:#6b736d;--line:#253029;--line-soft:#1c2521;--accent:#3fbc9b;--accent-hi:#58cbac;--accent-soft:#132a24;--accent-ink:#07110d;--seal:#d79c50;--seal-soft:#2a2113;--ok:#3fbc9b;--ok-soft:#132a24;--warn:#d79c50;--warn-soft:#2a2113;--danger:#e08a7f;--danger-soft:#2c1a17;--shadow:0 1px 2px rgba(0,0,0,.4),0 14px 34px -14px rgba(0,0,0,.6);--shadow-lg:0 2px 6px rgba(0,0,0,.45),0 44px 90px -34px rgba(0,0,0,.7);}
+  :root[data-theme="light"]{--bg:#efeee7;--surface:#fbfbf7;--surface-2:#f5f4ec;--ink:#181d1b;--ink-soft:#4c534e;--ink-faint:#868d87;--line:#ddddd2;--line-soft:#e8e8de;--accent:#0e5b49;--accent-hi:#0a4a3b;--accent-soft:#e2ede8;--accent-ink:#fbfbf7;--seal:#b5762c;--seal-soft:#f2e7d4;--ok:#0e5b49;--ok-soft:#e2ede8;--warn:#9a6a1a;--warn-soft:#f6ecd8;--danger:#a3372e;--danger-soft:#f3e3e0;--shadow:0 1px 2px rgba(24,29,27,.06),0 12px 30px -12px rgba(24,29,27,.16);--shadow-lg:0 2px 6px rgba(24,29,27,.08),0 40px 80px -32px rgba(14,91,73,.28);}
+
+  *{box-sizing:border-box}
+  html{background:var(--bg)}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  a{color:inherit;text-decoration:none}
+  h1,h2,h3{margin:0;font-family:var(--serif);font-weight:600;letter-spacing:-.01em}
+  p{margin:0}
+  .mono{font-family:var(--mono)}
+  a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+
+  /* shell */
+  .app{display:grid;grid-template-columns:var(--side) 1fr;min-height:100vh}
+  @media (max-width:880px){.app{grid-template-columns:1fr}}
+
+  /* sidebar */
+  .side{position:sticky;top:0;height:100vh;background:var(--surface);border-right:1px solid var(--line-soft);display:flex;flex-direction:column;padding:1rem .8rem;gap:.25rem}
+  @media (max-width:880px){.side{display:none}}
+  .brand{display:flex;align-items:center;gap:.55rem;font-weight:700;font-size:1.14rem;letter-spacing:-.02em;padding:.4rem .5rem .9rem}
+  .brand .seal{width:26px;height:26px;flex:0 0 auto}
+  .nav-h{font-family:var(--mono);font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);padding:.9rem .7rem .3rem}
+  .nav-i{display:flex;align-items:center;gap:.7rem;padding:.5rem .7rem;border-radius:10px;color:var(--ink-soft);font-size:.92rem;font-weight:500;cursor:pointer;transition:background .15s,color .15s}
+  .nav-i svg{width:17px;height:17px;flex:0 0 auto;opacity:.85}
+  .nav-i:hover{background:var(--surface-2);color:var(--ink)}
+  .nav-i.active{background:var(--accent-soft);color:var(--accent);font-weight:600}
+  .nav-i .tag{margin-left:auto;font-family:var(--mono);font-size:.6rem;background:var(--seal-soft);color:var(--seal);padding:.05rem .35rem;border-radius:5px;letter-spacing:.03em}
+  .side-foot{margin-top:auto;padding-top:.6rem;border-top:1px solid var(--line-soft)}
+  .plan-chip{display:flex;align-items:center;gap:.6rem;padding:.6rem .7rem;border-radius:12px;background:var(--surface-2);border:1px solid var(--line-soft)}
+  .plan-chip .pi{width:32px;height:32px;border-radius:9px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-family:var(--serif);font-weight:700}
+  .plan-chip .pl b{display:block;font-size:.86rem;color:var(--ink)}
+  .plan-chip .pl span{font-size:.72rem;color:var(--ink-faint)}
+  .plan-chip a{margin-left:auto;font-size:.74rem;color:var(--accent);font-weight:600}
+
+  /* main */
+  main{min-width:0;display:flex;flex-direction:column}
+  .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:1rem;padding:.85rem 1.6rem;background:color-mix(in srgb,var(--bg) 80%,transparent);backdrop-filter:saturate(1.2) blur(10px);border-bottom:1px solid var(--line-soft)}
+  .topbar .mbrand{display:none;align-items:center;gap:.5rem;font-weight:700}
+  @media (max-width:880px){.topbar .mbrand{display:flex}.topbar .crumb{display:none}}
+  .crumb{font-size:.9rem;color:var(--ink-faint)}
+  .crumb b{color:var(--ink);font-weight:600}
+  .search{margin-left:auto;display:flex;align-items:center;gap:.5rem;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:.42rem .7rem;color:var(--ink-faint);font-size:.86rem;min-width:200px}
+  @media (max-width:620px){.search{display:none}}
+  .search input{border:0;background:transparent;color:var(--ink);font-family:var(--sans);font-size:.86rem;outline:none;width:100%}
+  .icon-btn{background:transparent;border:1px solid var(--line);color:var(--ink-soft);width:36px;height:36px;border-radius:10px;cursor:pointer;display:grid;place-items:center}
+  .icon-btn:hover{border-color:var(--ink-faint);color:var(--ink)}
+  .avatar{width:36px;height:36px;border-radius:10px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:700;font-family:var(--serif);cursor:pointer}
+
+  .content{padding:1.8rem 1.6rem 3rem;max-width:1140px;width:100%;margin:0 auto}
+  @media (max-width:620px){.content{padding:1.3rem 1rem 2.4rem}}
+  .page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem}
+  .page-head h1{font-size:1.9rem;line-height:1.1}
+  .page-head .sub{color:var(--ink-soft);font-size:.96rem;margin-top:.25rem}
+  .page-head .hi{color:var(--seal)}
+
+  .btn{display:inline-flex;align-items:center;gap:.5rem;font-family:var(--sans);font-weight:600;font-size:.88rem;padding:.6rem 1rem;border-radius:10px;border:1px solid transparent;cursor:pointer;transition:transform .15s,background .2s,border-color .2s;white-space:nowrap}
+  .btn svg{width:16px;height:16px}
+  .btn-primary{background:var(--accent);color:var(--accent-ink);box-shadow:0 8px 20px -10px var(--accent)}
+  .btn-primary:hover{background:var(--accent-hi);transform:translateY(-1px)}
+  .btn-ghost{background:var(--surface);color:var(--ink);border-color:var(--line)}
+  .btn-ghost:hover{border-color:var(--ink-faint)}
+  .btn-sm{padding:.4rem .7rem;font-size:.8rem;border-radius:8px}
+
+  /* stat row */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+  @media (max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:460px){.stats{grid-template-columns:1fr}}
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:1.1rem 1.2rem;box-shadow:var(--shadow)}
+  .stat .lab{display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:var(--ink-faint);font-family:var(--mono);letter-spacing:.04em;text-transform:uppercase}
+  .stat .lab svg{width:15px;height:15px;color:var(--accent)}
+  .stat .val{font-family:var(--serif);font-size:1.9rem;line-height:1;margin:.55rem 0 .2rem}
+  .stat .val span{font-family:var(--sans);font-size:.85rem;color:var(--ink-faint);font-weight:500}
+  .stat .meta{font-size:.8rem;color:var(--ink-soft)}
+  .meter{height:6px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-top:.6rem;border:1px solid var(--line-soft)}
+  .meter i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-hi));border-radius:99px}
+
+  /* grid layout */
+  .cols{display:grid;grid-template-columns:1.55fr 1fr;gap:1.2rem;align-items:start}
+  @media (max-width:960px){.cols{grid-template-columns:1fr}}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+  .panel + .panel{margin-top:1.2rem}
+  .panel-h{display:flex;align-items:center;gap:.7rem;padding:1rem 1.2rem;border-bottom:1px solid var(--line-soft)}
+  .panel-h h2{font-size:1.12rem}
+  .panel-h .act{margin-left:auto;font-size:.8rem;color:var(--accent);font-weight:600;cursor:pointer}
+  .panel-b{padding:1.1rem 1.2rem}
+  .panel-b.tight{padding:.4rem .6rem}
+
+  /* domain card */
+  .dom{padding:.9rem .6rem;border-radius:11px}
+  .dom + .dom{border-top:1px solid var(--line-soft)}
+  .dom-top{display:flex;align-items:center;gap:.7rem}
+  .dom-ic{width:34px;height:34px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:0 0 auto}
+  .dom-name{font-weight:700;font-size:.98rem}
+  .dom-sub{font-size:.76rem;color:var(--ink-faint);font-family:var(--mono)}
+  .pill{display:inline-flex;align-items:center;gap:.35rem;font-family:var(--mono);font-size:.68rem;letter-spacing:.03em;padding:.2rem .5rem;border-radius:99px;font-weight:600}
+  .pill svg{width:11px;height:11px}
+  .pill.ok{background:var(--ok-soft);color:var(--ok)}
+  .pill.warn{background:var(--warn-soft);color:var(--warn)}
+  .pill.idle{background:var(--surface-2);color:var(--ink-faint)}
+  .recs{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.8rem;padding-left:2.7rem}
+  .rec{display:inline-flex;align-items:center;gap:.35rem;font-family:var(--mono);font-size:.7rem;padding:.22rem .5rem;border-radius:7px;border:1px solid var(--line-soft);background:var(--surface-2);color:var(--ink-soft)}
+  .rec svg{width:12px;height:12px}
+  .rec.ok{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 30%,var(--line-soft))}
+  .rec.warn{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 30%,var(--line-soft))}
+
+  /* mailbox list */
+  .mbx{display:grid;grid-template-columns:auto 1fr auto;gap:.8rem;align-items:center;padding:.75rem .5rem}
+  .mbx + .mbx{border-top:1px solid var(--line-soft)}
+  .mbx .av{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:.82rem}
+  .mbx .ad{font-weight:600;font-size:.9rem}
+  .mbx .rl{font-size:.75rem;color:var(--ink-faint)}
+  .mbx .use{text-align:right}
+  .mbx .use b{font-size:.82rem;font-weight:600}
+  .mbx .use span{display:block;font-size:.7rem;color:var(--ink-faint);font-family:var(--mono)}
+
+  /* checklist */
+  .todo{display:flex;gap:.7rem;align-items:flex-start;padding:.6rem 0}
+  .todo + .todo{border-top:1px solid var(--line-soft)}
+  .ck{width:20px;height:20px;border-radius:6px;flex:0 0 auto;display:grid;place-items:center;margin-top:.05rem}
+  .ck.done{background:var(--accent);color:var(--accent-ink)}
+  .ck.done svg{width:12px;height:12px}
+  .ck.open{border:1.5px dashed var(--line);}
+  .todo .tt{font-size:.88rem;font-weight:600}
+  .todo .td{font-size:.78rem;color:var(--ink-soft)}
+  .todo.done .tt{color:var(--ink-faint);text-decoration:line-through;text-decoration-color:var(--line)}
+  .todo .go{margin-left:auto;font-size:.76rem;color:var(--accent);font-weight:600;white-space:nowrap}
+
+  /* security rows / billing */
+  .krow{display:flex;align-items:center;gap:.7rem;padding:.7rem 0}
+  .krow + .krow{border-top:1px solid var(--line-soft)}
+  .krow .ki{width:32px;height:32px;border-radius:8px;background:var(--surface-2);color:var(--accent);display:grid;place-items:center;flex:0 0 auto}
+  .krow .kt b{display:block;font-size:.86rem}
+  .krow .kt span{font-size:.76rem;color:var(--ink-faint)}
+  .krow .kv{margin-left:auto;text-align:right}
+
+  .note{display:flex;gap:.6rem;align-items:flex-start;background:var(--seal-soft);border:1px solid color-mix(in srgb,var(--seal) 26%,transparent);color:var(--ink);border-radius:11px;padding:.8rem .9rem;font-size:.84rem;margin-top:1.2rem}
+  .note svg{width:17px;height:17px;color:var(--seal);flex:0 0 auto;margin-top:.05rem}
+  .note b{color:var(--seal)}
+</style>
+
+<div class="app">
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="side">
+    <a class="brand" href="index.html">
+      <svg class="seal" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect x="1.5" y="5.5" width="29" height="21" rx="4" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.6"/><path d="M3 8l13 9L29 8" stroke="var(--accent)" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="16" cy="20.5" r="4.4" fill="var(--seal)"/><path d="M14.2 20.4l1.3 1.3 2.4-2.5" stroke="#fff" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      maillan
+    </a>
+    <div class="nav-i active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Overview</div>
+    <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Mailboxes</div>
+    <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4M4 10v8h16v-8"/></svg>Domains<span class="tag">2</span></div>
+    <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v6H4zM4 14h16v6H4z"/></svg>Aliases</div>
+    <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>Storage</div>
+    <div class="nav-h">Account</div>
+    <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/></svg>Security</div>
+    <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Billing</div>
+    <div class="nav-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 7 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H1a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 2.6 7a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 9 2.6V2a2 2 0 1 1 4 0v.1A1.6 1.6 0 0 0 17 4.6a1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 1.1 2.7H23a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg>Settings</div>
+    <div class="side-foot">
+      <div class="plan-chip">
+        <div class="pi">P</div>
+        <div class="pl"><b>Personal plan</b><span>€6 / month</span></div>
+        <a href="#">Manage</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main>
+    <div class="topbar">
+      <a class="mbrand" href="index.html"><svg class="seal" width="24" height="24" viewBox="0 0 32 32" fill="none"><rect x="1.5" y="5.5" width="29" height="21" rx="4" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.6"/><path d="M3 8l13 9L29 8" stroke="var(--accent)" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="16" cy="20.5" r="4.4" fill="var(--seal)"/></svg>maillan</a>
+      <div class="crumb"><b>Overview</b></div>
+      <label class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input placeholder="Search mail, domains, settings…"></label>
+      <button class="icon-btn" id="themeBtn" aria-label="Toggle theme" title="Toggle light / dark"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+      <button class="icon-btn" aria-label="Notifications"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 21a2 2 0 0 0 4 0"/></svg></button>
+      <div class="avatar" title="admin@maillan.com">D</div>
+    </div>
+
+    <div class="content">
+      <div class="page-head">
+        <div>
+          <h1>Good morning, <span class="hi">Dany</span>.</h1>
+          <p class="sub">Everything is running smoothly — 2 domains, 3 mailboxes, all signing keys verified.</p>
+        </div>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+          <a class="btn btn-ghost" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4M4 10v8h16v-8"/></svg>Add a domain</a>
+          <a class="btn btn-primary" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>New mailbox</a>
+        </div>
+      </div>
+
+      <!-- stats -->
+      <div class="stats">
+        <div class="stat">
+          <div class="lab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/></svg>Storage</div>
+          <div class="val">2.1<span> / 50 GB</span></div>
+          <div class="meter"><i style="width:4.2%"></i></div>
+        </div>
+        <div class="stat">
+          <div class="lab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Messages</div>
+          <div class="val">1,284</div>
+          <div class="meta">+38 in the last 7 days</div>
+        </div>
+        <div class="stat">
+          <div class="lab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Addresses</div>
+          <div class="val">3</div>
+          <div class="meta">2 users · 1 catch-all</div>
+        </div>
+        <div class="stat">
+          <div class="lab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg>Deliverability</div>
+          <div class="val">100<span>%</span></div>
+          <div class="meta">SPF · DKIM · DMARC aligned</div>
+        </div>
+      </div>
+
+      <div class="cols">
+        <!-- LEFT -->
+        <div>
+          <!-- domains -->
+          <div class="panel">
+            <div class="panel-h"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M3 7l9-4 9 4M4 10v8h16v-8"/></svg><h2>Your domains</h2><span class="act">Manage →</span></div>
+            <div class="panel-b tight">
+              <div class="dom">
+                <div class="dom-top">
+                  <div class="dom-ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4M4 10v8h16v-8"/></svg></div>
+                  <div><div class="dom-name">maillan.com</div><div class="dom-sub">primary · mx1.maillan.com</div></div>
+                  <span class="pill ok" style="margin-left:auto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11"/></svg>Verified</span>
+                </div>
+                <div class="recs">
+                  <span class="rec ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11"/></svg>MX</span>
+                  <span class="rec ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11"/></svg>SPF</span>
+                  <span class="rec ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11"/></svg>DKIM</span>
+                  <span class="rec ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11"/></svg>DMARC</span>
+                  <span class="rec ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11"/></svg>MTA-STS</span>
+                  <span class="rec ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11"/></svg>rDNS</span>
+                  <span class="rec ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11"/></svg>TLS · Let’s Encrypt</span>
+                </div>
+              </div>
+              <div class="dom">
+                <div class="dom-top">
+                  <div class="dom-ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4M4 10v8h16v-8"/></svg></div>
+                  <div><div class="dom-name">premiumdeals.space</div><div class="dom-sub">tenant · on Namecheap DNS</div></div>
+                  <span class="pill warn" style="margin-left:auto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Propagating</span>
+                </div>
+                <div class="recs">
+                  <span class="rec ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11"/></svg>MX</span>
+                  <span class="rec ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11"/></svg>SPF</span>
+                  <span class="rec ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11"/></svg>DKIM</span>
+                  <span class="rec ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11"/></svg>DMARC</span>
+                  <span class="rec warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>MTA-STS</span>
+                  <span class="rec warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>TLS · issuing</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- mailboxes -->
+          <div class="panel">
+            <div class="panel-h"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><h2>Mailboxes</h2><span class="act">+ New mailbox</span></div>
+            <div class="panel-b tight">
+              <div class="mbx">
+                <span class="av" style="background:#0e5b49">A</span>
+                <div><div class="ad">admin@maillan.com</div><div class="rl">Administrator · active now</div></div>
+                <div class="use"><b>0.4 GB</b><span>of 50 GB</span></div>
+              </div>
+              <div class="mbx">
+                <span class="av" style="background:#b5762c">A</span>
+                <div><div class="ad">alice@premiumdeals.space</div><div class="rl">User · active 3h ago</div></div>
+                <div class="use"><b>12 MB</b><span>of 50 GB</span></div>
+              </div>
+              <div class="mbx">
+                <span class="av" style="background:#3f6f8a">✳</span>
+                <div><div class="ad">catch-all@premiumdeals.space</div><div class="rl">Catches <span class="mono">*@premiumdeals.space</span></div></div>
+                <div class="use"><b>1 MB</b><span>of 50 GB</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div>
+          <!-- setup -->
+          <div class="panel">
+            <div class="panel-h"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><h2>Get set up</h2></div>
+            <div class="panel-b">
+              <div class="todo done"><span class="ck done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11"/></svg></span><div><div class="tt">Create your inbox</div></div></div>
+              <div class="todo done"><span class="ck done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4 10-11"/></svg></span><div><div class="tt">Verify a domain &amp; sign it (DKIM)</div></div></div>
+              <div class="todo"><span class="ck open"></span><div><div class="tt">Turn on two-factor auth</div><div class="td">Protect your account with an authenticator app.</div></div><a class="go" href="#">Enable →</a></div>
+              <div class="todo"><span class="ck open"></span><div><div class="tt">Import your old mail</div><div class="td">Bring everything over from Gmail or Outlook.</div></div><a class="go" href="#">Import →</a></div>
+              <div class="todo"><span class="ck open"></span><div><div class="tt">Set up sending</div><div class="td">Enable outbound relay so you can send to the world.</div></div><a class="go" href="#">Set up →</a></div>
+            </div>
+          </div>
+
+          <!-- security -->
+          <div class="panel">
+            <div class="panel-h"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/></svg><h2>Security</h2></div>
+            <div class="panel-b" style="padding-top:.3rem;padding-bottom:.5rem">
+              <div class="krow"><span class="ki"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><div class="kt"><b>TLS certificate</b><span>Let’s Encrypt · mx1.maillan.com</span></div><span class="kv pill ok">valid → Oct 7</span></div>
+              <div class="krow"><span class="ki"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M12 15v3"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span><div class="kt"><b>Two-factor auth</b><span>Not enabled yet</span></div><a class="btn btn-ghost btn-sm kv" href="#">Enable</a></div>
+              <div class="krow"><span class="ki"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="3"/><path d="M2 20c0-3 3-5 6-5s6 2 6 5"/><path d="M16 8h6M19 5v6"/></svg></span><div class="kt"><b>App passwords</b><span>For IMAP / SMTP clients</span></div><span class="kv" style="font-size:.82rem;color:var(--ink-faint)">0 active</span></div>
+              <div class="krow"><span class="ki"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg></span><div class="kt"><b>Active sessions</b><span>Web · iPhone Mail</span></div><span class="kv" style="font-size:.82rem;color:var(--ink-faint)">2 devices</span></div>
+            </div>
+          </div>
+
+          <!-- billing -->
+          <div class="panel">
+            <div class="panel-h"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><h2>Billing</h2><span class="act">Invoices →</span></div>
+            <div class="panel-b">
+              <div style="display:flex;align-items:baseline;gap:.5rem"><span style="font-family:var(--serif);font-size:1.7rem">€6</span><span style="color:var(--ink-faint);font-size:.85rem">/ month · Personal</span></div>
+              <p style="font-size:.82rem;color:var(--ink-soft);margin:.4rem 0 .9rem">Next invoice <b style="color:var(--ink)">1 Aug 2026</b> · Visa ···· 4242</p>
+              <a class="btn btn-ghost btn-sm" href="#">Change plan</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+        <div><b>Sending isn’t live yet.</b> Your mailboxes receive fine. To send to the outside world, finish <a href="#" style="color:var(--seal);text-decoration:underline">Set up sending</a> — we’ll route outbound mail through a warmed relay so it lands in inboxes, not spam.</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  (function(){
+    var btn=document.getElementById('themeBtn'),root=document.documentElement;
+    btn&&btn.addEventListener('click',function(){
+      var cur=root.getAttribute('data-theme');
+      if(!cur){cur=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
+      root.setAttribute('data-theme',cur==='dark'?'light':'dark');
+    });
+  })();
+</script>

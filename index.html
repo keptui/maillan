@@ -1,0 +1,466 @@
+<title>maillan — private email worth your name</title>
+<style>
+  :root {
+    /* light — "ink on paper" */
+    --bg:        #efeee7;
+    --surface:   #fbfbf7;
+    --surface-2: #f5f4ec;
+    --ink:       #181d1b;
+    --ink-soft:  #4c534e;
+    --ink-faint: #868d87;
+    --line:      #ddddd2;
+    --line-soft: #e8e8de;
+    --accent:    #0e5b49;   /* deep pine-teal — "sealed / verified" */
+    --accent-hi: #0a4a3b;
+    --accent-soft:#e2ede8;
+    --accent-ink:#fbfbf7;
+    --seal:      #b5762c;   /* warm amber wax-seal, used sparingly */
+    --seal-soft: #f2e7d4;
+    --shadow:    0 1px 2px rgba(24,29,27,.06), 0 12px 30px -12px rgba(24,29,27,.18);
+    --shadow-lg: 0 2px 6px rgba(24,29,27,.08), 0 40px 80px -32px rgba(14,91,73,.32);
+
+    --serif: "Palatino Linotype", Palatino, "Book Antiqua", "URW Palladio L", Georgia, serif;
+    --sans:  system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono:  ui-monospace, "Cascadia Code", "SF Mono", Consolas, "Liberation Mono", monospace;
+
+    --wrap: 72rem;
+    --r: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:        #0d1312;
+      --surface:   #151c1a;
+      --surface-2: #101614;
+      --ink:       #e8ebe5;
+      --ink-soft:  #a7afa8;
+      --ink-faint: #6b736d;
+      --line:      #253029;
+      --line-soft: #1c2521;
+      --accent:    #3fbc9b;
+      --accent-hi: #58cbac;
+      --accent-soft:#132a24;
+      --accent-ink:#07110d;
+      --seal:      #d79c50;
+      --seal-soft: #2a2113;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 14px 34px -14px rgba(0,0,0,.6);
+      --shadow-lg: 0 2px 6px rgba(0,0,0,.45), 0 44px 90px -34px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0d1312;--surface:#151c1a;--surface-2:#101614;--ink:#e8ebe5;--ink-soft:#a7afa8;--ink-faint:#6b736d;
+    --line:#253029;--line-soft:#1c2521;--accent:#3fbc9b;--accent-hi:#58cbac;--accent-soft:#132a24;--accent-ink:#07110d;
+    --seal:#d79c50;--seal-soft:#2a2113;--shadow:0 1px 2px rgba(0,0,0,.4),0 14px 34px -14px rgba(0,0,0,.6);
+    --shadow-lg:0 2px 6px rgba(0,0,0,.45),0 44px 90px -34px rgba(0,0,0,.7);
+  }
+  :root[data-theme="light"]{
+    --bg:#efeee7;--surface:#fbfbf7;--surface-2:#f5f4ec;--ink:#181d1b;--ink-soft:#4c534e;--ink-faint:#868d87;
+    --line:#ddddd2;--line-soft:#e8e8de;--accent:#0e5b49;--accent-hi:#0a4a3b;--accent-soft:#e2ede8;--accent-ink:#fbfbf7;
+    --seal:#b5762c;--seal-soft:#f2e7d4;--shadow:0 1px 2px rgba(24,29,27,.06),0 12px 30px -12px rgba(24,29,27,.18);
+    --shadow-lg:0 2px 6px rgba(24,29,27,.08),0 40px 80px -32px rgba(14,91,73,.32);
+  }
+
+  * { box-sizing: border-box; }
+  html { background: var(--bg); scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: var(--sans); font-size: 16px; line-height: 1.6;
+    -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  }
+  @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} *{animation:none!important;transition:none!important} }
+  .wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 1.5rem; }
+  a { color: inherit; text-decoration: none; }
+  h1,h2,h3 { margin: 0; font-family: var(--serif); font-weight: 600; letter-spacing: -0.01em; text-wrap: balance; }
+  p { margin: 0; }
+  .eyebrow {
+    font-family: var(--mono); font-size: .74rem; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--accent); display: inline-flex; align-items: center; gap: .5rem;
+  }
+  .eyebrow::before { content:""; width: 1.6rem; height: 1px; background: currentColor; opacity:.6; }
+
+  /* buttons */
+  .btn {
+    display:inline-flex; align-items:center; gap:.5rem; font-family:var(--sans); font-weight:600;
+    font-size:.95rem; padding:.72rem 1.15rem; border-radius: 10px; border:1px solid transparent;
+    cursor:pointer; transition: transform .15s ease, background .2s ease, box-shadow .2s ease, border-color .2s;
+    white-space:nowrap;
+  }
+  .btn-primary { background: var(--accent); color: var(--accent-ink); box-shadow: 0 1px 0 rgba(0,0,0,.08), 0 8px 20px -8px var(--accent); }
+  .btn-primary:hover { background: var(--accent-hi); transform: translateY(-1px); }
+  .btn-ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+  .btn-ghost:hover { border-color: var(--ink-faint); background: var(--surface); }
+  .btn-lg { padding: .9rem 1.4rem; font-size: 1rem; border-radius: 12px; }
+  a:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 10px; }
+
+  /* nav */
+  header.nav {
+    position: sticky; top: 0; z-index: 50; backdrop-filter: saturate(1.2) blur(10px);
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .nav-inner { display:flex; align-items:center; gap:1.5rem; height: 64px; }
+  .brand { display:flex; align-items:center; gap:.6rem; font-weight:700; font-size:1.16rem; letter-spacing:-.02em; }
+  .brand .seal { width:26px; height:26px; flex:0 0 auto; }
+  .nav-links { display:flex; gap: 1.6rem; margin-left: 1rem; font-size:.94rem; color: var(--ink-soft); }
+  .nav-links a:hover { color: var(--ink); }
+  .nav-cta { margin-left:auto; display:flex; align-items:center; gap: .9rem; }
+  .nav-cta .signin { font-size:.94rem; color: var(--ink-soft); }
+  .nav-cta .signin:hover { color: var(--ink); }
+  @media (max-width: 780px){ .nav-links{display:none} }
+
+  /* hero */
+  .hero { padding: clamp(3.5rem, 7vw, 6rem) 0 clamp(3rem,5vw,4.5rem); position: relative; overflow: clip; }
+  .hero-grid { display:grid; grid-template-columns: 1.05fr .95fr; gap: clamp(2rem,5vw,4rem); align-items:center; }
+  @media (max-width: 940px){ .hero-grid{ grid-template-columns:1fr; } }
+  .hero h1 { font-size: clamp(2.5rem, 5.4vw, 4rem); line-height: 1.02; margin: 1.1rem 0 1.1rem; }
+  .hero h1 em { font-style: italic; color: var(--accent); }
+  .hero .lede { font-size: 1.16rem; color: var(--ink-soft); max-width: 34rem; }
+  .hero .actions { display:flex; gap: .8rem; margin: 1.9rem 0 1.1rem; flex-wrap:wrap; }
+  .hero .fineprint { font-family: var(--mono); font-size: .78rem; color: var(--ink-faint); letter-spacing:.02em; }
+  .hero .fineprint b { color: var(--seal); font-weight: 600; }
+  .reveal { opacity: 0; transform: translateY(14px); animation: rise .7s cubic-bezier(.2,.7,.2,1) forwards; }
+  .reveal.d1{animation-delay:.05s}.reveal.d2{animation-delay:.13s}.reveal.d3{animation-delay:.21s}.reveal.d4{animation-delay:.30s}
+  @keyframes rise { to { opacity:1; transform:none; } }
+
+  /* hero inbox mock */
+  .mock {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
+    box-shadow: var(--shadow-lg); overflow: hidden; font-size: .84rem;
+  }
+  .mock-top { display:flex; align-items:center; gap:.5rem; padding: .7rem .9rem; border-bottom:1px solid var(--line-soft); background: var(--surface-2); }
+  .mock-top .dot{ width:10px;height:10px;border-radius:50%; background: var(--line); }
+  .mock-top .addr { margin-left:.6rem; font-family:var(--mono); font-size:.74rem; color:var(--ink-faint); }
+  .mock-top .lock { margin-left:auto; display:inline-flex; align-items:center; gap:.35rem; font-family:var(--mono); font-size:.68rem; color: var(--accent); }
+  .mock-body { display:grid; grid-template-columns: 88px 1fr; min-height: 300px; }
+  .mock-side { border-right:1px solid var(--line-soft); padding: .8rem .55rem; display:flex; flex-direction:column; gap:.15rem; background: var(--surface-2); }
+  .mock-side .f { display:flex; align-items:center; gap:.45rem; padding:.34rem .5rem; border-radius:8px; color: var(--ink-soft); font-size:.78rem; }
+  .mock-side .f.active { background: var(--accent-soft); color: var(--accent); font-weight:600; }
+  .mock-side .f .g { width:14px; text-align:center; opacity:.85; }
+  .mock-list { padding: .3rem; display:flex; flex-direction:column; }
+  .mail { display:grid; grid-template-columns: 30px 1fr auto; gap:.6rem; padding:.6rem .55rem; border-radius:10px; align-items:start; }
+  .mail:hover { background: var(--surface-2); }
+  .mail.unread .subj { font-weight:700; }
+  .mail .av { width:30px;height:30px;border-radius:50%; display:grid;place-items:center; font-weight:700; color:#fff; font-size:.74rem; }
+  .mail .who { color: var(--ink); font-weight:600; font-size:.82rem; }
+  .mail .subj { color: var(--ink); font-size:.82rem; }
+  .mail .snip { color: var(--ink-faint); font-size:.76rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width: 100%; }
+  .mail .time { color: var(--ink-faint); font-size:.72rem; font-family:var(--mono); }
+  .mail .badge { display:inline-block; font-family:var(--mono); font-size:.6rem; letter-spacing:.05em; color: var(--accent); background: var(--accent-soft); padding:.05rem .35rem; border-radius:5px; margin-left:.4rem; vertical-align:1px; }
+
+  /* trust strip */
+  .trust { border-top:1px solid var(--line-soft); border-bottom:1px solid var(--line-soft); background: var(--surface); }
+  .trust-inner { display:flex; flex-wrap:wrap; gap: 1.4rem 2.2rem; padding: 1.1rem 0; align-items:center; justify-content: space-between; }
+  .trust .t { display:flex; align-items:center; gap:.55rem; font-size:.9rem; color: var(--ink-soft); }
+  .trust .t svg { color: var(--accent); flex:0 0 auto; }
+
+  /* sections */
+  section.band { padding: clamp(3.5rem, 7vw, 6rem) 0; }
+  .sec-head { max-width: 40rem; margin-bottom: 2.6rem; }
+  .sec-head h2 { font-size: clamp(1.8rem, 3.6vw, 2.6rem); line-height:1.1; margin:.8rem 0 .7rem; }
+  .sec-head p { color: var(--ink-soft); font-size: 1.06rem; }
+
+  .features { display:grid; grid-template-columns: repeat(3,1fr); gap: 1.1rem; }
+  @media (max-width: 860px){ .features{ grid-template-columns:1fr; } }
+  .card {
+    background: var(--surface); border:1px solid var(--line); border-radius: var(--r); padding: 1.5rem;
+    box-shadow: var(--shadow); transition: transform .18s ease, border-color .2s ease;
+  }
+  .card:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--accent) 40%, var(--line)); }
+  .card .ico { width:40px;height:40px;border-radius:11px; background: var(--accent-soft); color: var(--accent); display:grid;place-items:center; margin-bottom:1rem; }
+  .card h3 { font-size: 1.24rem; margin-bottom:.5rem; }
+  .card p { color: var(--ink-soft); font-size:.96rem; }
+  .card .addr-chip { margin-top: .9rem; font-family:var(--mono); font-size:.8rem; color: var(--ink-soft); background: var(--surface-2); border:1px solid var(--line-soft); border-radius:8px; padding:.4rem .6rem; display:inline-block; }
+  .card .addr-chip b { color: var(--accent); }
+
+  /* how it works */
+  .steps { display:grid; grid-template-columns: repeat(3,1fr); gap: 1.1rem; counter-reset: s; }
+  @media (max-width: 860px){ .steps{ grid-template-columns:1fr; } }
+  .step { padding: 1.5rem; border-radius: var(--r); border:1px dashed var(--line); position:relative; }
+  .step .n { font-family: var(--mono); font-size:.8rem; color: var(--accent); font-weight:700; letter-spacing:.1em; }
+  .step h3 { font-size: 1.16rem; margin:.5rem 0 .4rem; }
+  .step p { color: var(--ink-soft); font-size:.95rem; }
+
+  /* pricing */
+  .pricing { display:grid; grid-template-columns: repeat(3,1fr); gap: 1.1rem; align-items: stretch; }
+  @media (max-width: 900px){ .pricing{ grid-template-columns:1fr; max-width: 26rem; margin-inline:auto; } }
+  .plan { background: var(--surface); border:1px solid var(--line); border-radius: 16px; padding: 1.6rem; display:flex; flex-direction:column; box-shadow: var(--shadow); }
+  .plan.feature { border-color: var(--accent); box-shadow: var(--shadow-lg); position:relative; }
+  .plan.feature::before {
+    content:"Most chosen"; position:absolute; top:-.7rem; left:1.6rem; font-family:var(--mono); font-size:.66rem; letter-spacing:.12em;
+    text-transform:uppercase; background: var(--accent); color: var(--accent-ink); padding:.25rem .55rem; border-radius:6px;
+  }
+  .plan .pname { font-family:var(--sans); font-weight:700; font-size:1.05rem; letter-spacing:.01em; }
+  .plan .price { font-family: var(--serif); font-size: 2.5rem; line-height:1; margin:.7rem 0 .2rem; }
+  .plan .price span { font-family:var(--sans); font-size:.9rem; color: var(--ink-faint); font-weight:500; }
+  .plan .ptag { color: var(--ink-soft); font-size:.9rem; min-height: 2.4em; }
+  .plan ul { list-style:none; margin: 1.1rem 0 1.4rem; padding:0; display:flex; flex-direction:column; gap:.6rem; }
+  .plan li { display:flex; gap:.55rem; align-items:flex-start; font-size:.92rem; color: var(--ink-soft); }
+  .plan li svg { color: var(--accent); flex:0 0 auto; margin-top:.15rem; }
+  .plan .btn { margin-top:auto; justify-content:center; }
+
+  /* closing cta */
+  .cta-band { background: var(--surface); border:1px solid var(--line); border-radius: 20px; padding: clamp(2.2rem,5vw,3.4rem); text-align:center; position:relative; overflow:hidden; box-shadow: var(--shadow-lg); }
+  .cta-band::after{ content:""; position:absolute; inset:auto -20% -60% -20%; height:70%; background: radial-gradient(ellipse at center top, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%); pointer-events:none; }
+  .cta-band h2 { font-size: clamp(1.9rem,4vw,2.8rem); margin-bottom:.7rem; position:relative; }
+  .cta-band p { color: var(--ink-soft); max-width: 34rem; margin: 0 auto 1.6rem; position:relative; }
+
+  /* footer */
+  footer { border-top:1px solid var(--line-soft); margin-top: 4rem; padding: 2.6rem 0 3rem; color: var(--ink-soft); font-size:.9rem; }
+  .foot-grid { display:grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 1.5rem; }
+  @media (max-width: 780px){ .foot-grid{ grid-template-columns: 1fr 1fr; gap:1.8rem 1rem; } }
+  footer h4 { font-family:var(--sans); font-size:.78rem; letter-spacing:.1em; text-transform:uppercase; color: var(--ink-faint); margin:0 0 .8rem; }
+  footer a { display:block; color: var(--ink-soft); padding:.2rem 0; }
+  footer a:hover { color: var(--ink); }
+  .foot-bottom { display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap; margin-top:2.2rem; padding-top:1.4rem; border-top:1px solid var(--line-soft); font-family:var(--mono); font-size:.76rem; color: var(--ink-faint); }
+  .made { display:inline-flex; align-items:center; gap:.4rem; }
+
+  .theme-toggle { background:transparent;border:1px solid var(--line);color:var(--ink-soft);width:34px;height:34px;border-radius:9px;cursor:pointer;display:grid;place-items:center; }
+  .theme-toggle:hover{ border-color: var(--ink-faint); color: var(--ink); }
+</style>
+
+<!-- ============ NAV ============ -->
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top" aria-label="maillan home">
+      <svg class="seal" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <rect x="1.5" y="5.5" width="29" height="21" rx="4" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.6"/>
+        <path d="M3 8l13 9L29 8" stroke="var(--accent)" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        <circle cx="16" cy="20.5" r="4.4" fill="var(--seal)"/>
+        <path d="M14.2 20.4l1.3 1.3 2.4-2.5" stroke="#fff" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      maillan
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#security">Security</a>
+    </nav>
+    <div class="nav-cta">
+      <button class="theme-toggle" id="themeBtn" aria-label="Toggle theme" title="Toggle light / dark">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+      <a class="signin" href="dashboard.html">Sign in</a>
+      <a class="btn btn-primary" href="#pricing">Create your inbox</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow reveal d1">Private email for individuals</span>
+      <h1 class="reveal d2">An inbox worth <em>your name.</em></h1>
+      <p class="lede reveal d2">maillan is a calm, private, ad-free inbox — on your own domain or a clean
+        <span style="font-family:var(--mono);color:var(--accent)">@maillan.com</span> address. Encrypted at rest,
+        spam-filtered, and built on open standards, so your mail always stays yours.</p>
+      <div class="actions reveal d3">
+        <a class="btn btn-primary btn-lg" href="#pricing">Create your inbox →</a>
+        <a class="btn btn-ghost btn-lg" href="#how">See how it works</a>
+      </div>
+      <p class="fineprint reveal d3">From <b>€3/mo</b> · 14-day free trial · No ads, ever · Hosted in the EU</p>
+    </div>
+
+    <!-- inbox mock -->
+    <div class="mock reveal d4" role="img" aria-label="Preview of the maillan inbox">
+      <div class="mock-top">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="addr">you@maillan.com</span>
+        <span class="lock">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+          private
+        </span>
+      </div>
+      <div class="mock-body">
+        <div class="mock-side" aria-hidden="true">
+          <div class="f active"><span class="g">✉︎</span>Inbox</div>
+          <div class="f"><span class="g">➤</span>Sent</div>
+          <div class="f"><span class="g">✎</span>Drafts</div>
+          <div class="f"><span class="g">★</span>Starred</div>
+          <div class="f"><span class="g">🗑</span>Trash</div>
+        </div>
+        <div class="mock-list">
+          <div class="mail unread">
+            <span class="av" style="background:#0e5b49">A</span>
+            <div><div class="who">Amélie Rousseau</div><div class="subj">Weekend in the Vercors?<span class="badge">DKIM ✓</span></div><div class="snip">Booked the gîte — bring the good coffee this time…</div></div>
+            <span class="time">09:12</span>
+          </div>
+          <div class="mail">
+            <span class="av" style="background:#b5762c">S</span>
+            <div><div class="who">Stripe</div><div class="subj">Your payout is on the way</div><div class="snip">€1,204.50 will arrive in your account by Thursday.</div></div>
+            <span class="time">08:41</span>
+          </div>
+          <div class="mail">
+            <span class="av" style="background:#3f6f8a">N</span>
+            <div><div class="who">Notion</div><div class="subj">3 pages shared with you</div><div class="snip">“Q3 plan”, “Reading list”, “Trip — Lisbon”…</div></div>
+            <span class="time">Tue</span>
+          </div>
+          <div class="mail">
+            <span class="av" style="background:#7a4b8a">M</span>
+            <div><div class="who">maillan</div><div class="subj">Welcome — your inbox is ready</div><div class="snip">You’re all set. Here’s how to bring your own domain.</div></div>
+            <span class="time">Mon</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TRUST STRIP ============ -->
+<div class="trust">
+  <div class="wrap trust-inner">
+    <div class="t"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/></svg> No ads &amp; no tracking</div>
+    <div class="t"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> Encrypted at rest</div>
+    <div class="t"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z" opacity="0"/><path d="M3 7l9 6 9-6M3 7v10h18V7L12 13 3 7z"/></svg> Your own domain</div>
+    <div class="t"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M2 12h20M12 2c3 3 3 17 0 20M12 2C9 5 9 19 12 22"/></svg> Open standards (IMAP/JMAP)</div>
+    <div class="t"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg> Spam &amp; virus filtered</div>
+  </div>
+</div>
+
+<!-- ============ FEATURES ============ -->
+<section class="band" id="features">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">What you get</span>
+      <h2>A real inbox — not a compromise.</h2>
+      <p>Everything you expect from serious email, with none of the surveillance. Built for one person who wants their correspondence to stay personal.</p>
+    </div>
+    <div class="features">
+      <article class="card">
+        <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9 6 9-6M3 7v10h18V7L12 13 3 7z"/></svg></div>
+        <h3>An address that’s yours</h3>
+        <p>Take a clean <b style="color:var(--accent)">@maillan.com</b> handle, or connect a domain you already own. Your name, on your mail — for good.</p>
+        <span class="addr-chip">hello@<b>yourname.com</b></span>
+      </article>
+      <article class="card">
+        <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>
+        <h3>Private by architecture</h3>
+        <p>Mailboxes are encrypted at rest, we never scan your mail to sell ads, and everything is hosted in the EU under GDPR. Your data isn’t the product.</p>
+        <span class="addr-chip"><b>SPF · DKIM · DMARC</b> enforced</span>
+      </article>
+      <article class="card">
+        <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M2 12h20M12 2c3 3 3 17 0 20M12 2C9 5 9 19 12 22"/></svg></div>
+        <h3>Works with everything</h3>
+        <p>Open IMAP &amp; JMAP means maillan drops into Apple Mail, Thunderbird, your phone — or our clean webmail. Calendar and contacts included.</p>
+        <span class="addr-chip">iOS · Android · <b>Web</b> · Desktop</span>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section class="band" id="how" style="background:var(--surface); border-block:1px solid var(--line-soft);">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Live in minutes</span>
+      <h2>From “I want private email” to your first message.</h2>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="n">STEP 01</div><h3>Pick your address</h3><p>Choose a <span style="font-family:var(--mono)">@maillan.com</span> name or point a domain you own. We check availability instantly.</p></div>
+      <div class="step"><div class="n">STEP 02</div><h3>We handle the plumbing</h3><p>DNS, DKIM signing keys and reverse-DNS are configured for you. No cryptic records to copy by hand.</p></div>
+      <div class="step"><div class="n">STEP 03</div><h3>Send &amp; receive</h3><p>Open the webmail or add it to your favourite app. Your first authenticated message goes out in under a minute.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PRICING ============ -->
+<section class="band" id="pricing">
+  <div class="wrap">
+    <div class="sec-head" style="margin-inline:auto; text-align:center;">
+      <span class="eyebrow" style="justify-content:center; display:flex;">Simple pricing</span>
+      <h2>One person. One honest price.</h2>
+      <p style="margin-inline:auto;">No “per-seat” games, no data harvesting to subsidise a free tier. Try any plan free for 14 days — cancel with one click.</p>
+    </div>
+    <div class="pricing">
+      <div class="plan">
+        <div class="pname">Starter</div>
+        <div class="price">€3<span> / month</span></div>
+        <p class="ptag">A private inbox on maillan.com to get you off Big Tech.</p>
+        <ul>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l4 4 10-11"/></svg> One <b style="color:var(--ink)">@maillan.com</b> address</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l4 4 10-11"/></svg> 10&nbsp;GB encrypted storage</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l4 4 10-11"/></svg> Webmail, IMAP &amp; mobile</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l4 4 10-11"/></svg> Spam &amp; virus filtering</li>
+        </ul>
+        <a class="btn btn-ghost" href="#">Start free</a>
+      </div>
+
+      <div class="plan feature">
+        <div class="pname">Personal</div>
+        <div class="price">€6<span> / month</span></div>
+        <p class="ptag">Your own domain and a proper personal inbox. The one most people pick.</p>
+        <ul>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l4 4 10-11"/></svg> <b style="color:var(--ink)">Bring your own domain</b></li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l4 4 10-11"/></svg> Up to 5 addresses &amp; aliases</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l4 4 10-11"/></svg> 50&nbsp;GB storage · calendar &amp; contacts</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l4 4 10-11"/></svg> Auto-configured DKIM &amp; DMARC</li>
+        </ul>
+        <a class="btn btn-primary" href="#">Create your inbox</a>
+      </div>
+
+      <div class="plan">
+        <div class="pname">Pro</div>
+        <div class="price">€12<span> / month</span></div>
+        <p class="ptag">For power users and side-projects that send real mail.</p>
+        <ul>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l4 4 10-11"/></svg> Multiple domains &amp; catch-all</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l4 4 10-11"/></svg> 200&nbsp;GB storage</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l4 4 10-11"/></svg> Sending API &amp; app passwords</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l4 4 10-11"/></svg> Priority human support</li>
+        </ul>
+        <a class="btn btn-ghost" href="#">Choose Pro</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECURITY / CLOSING ============ -->
+<section class="band" id="security">
+  <div class="wrap">
+    <div class="cta-band">
+      <span class="eyebrow" style="justify-content:center; display:flex;">Sealed, not scanned</span>
+      <h2>Ready for email that answers to you?</h2>
+      <p>Move in without losing a message — import from Gmail or Outlook, keep your calendar, and finally read your mail without an ad in sight.</p>
+      <div style="display:flex; gap:.8rem; justify-content:center; flex-wrap:wrap; position:relative;">
+        <a class="btn btn-primary btn-lg" href="#pricing">Create your inbox →</a>
+        <a class="btn btn-ghost btn-lg" href="#features">Compare plans</a>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="#top" style="margin-bottom:.7rem;">
+          <svg class="seal" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect x="1.5" y="5.5" width="29" height="21" rx="4" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.6"/><path d="M3 8l13 9L29 8" stroke="var(--accent)" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="16" cy="20.5" r="4.4" fill="var(--seal)"/><path d="M14.2 20.4l1.3 1.3 2.4-2.5" stroke="#fff" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          maillan
+        </a>
+        <p style="max-width:22rem; color:var(--ink-faint);">Private email that carries your name. Built on open standards, hosted in the EU, answerable only to you.</p>
+      </div>
+      <div><h4>Product</h4><a href="#features">Features</a><a href="#pricing">Pricing</a><a href="#security">Security</a><a href="#">Webmail</a></div>
+      <div><h4>Company</h4><a href="#">About</a><a href="#">Blog</a><a href="#">Status</a><a href="#">Contact</a></div>
+      <div><h4>Legal</h4><a href="#">Privacy</a><a href="#">Terms</a><a href="#">GDPR &amp; DPA</a><a href="#">Abuse</a></div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 maillan</span>
+      <span class="made">✦ Made &amp; hosted in the EU · No ads, no trackers on this page</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var btn = document.getElementById('themeBtn');
+    var root = document.documentElement;
+    btn && btn.addEventListener('click', function(){
+      var cur = root.getAttribute('data-theme');
+      if(!cur){ cur = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
+      root.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+    });
+  })();
+</script>
