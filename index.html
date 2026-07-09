@@ -117,9 +117,13 @@
   .hero .actions { display:flex; gap: .8rem; margin: 1.9rem 0 1.1rem; flex-wrap:wrap; }
   .hero .fineprint { font-family: var(--mono); font-size: .78rem; color: var(--ink-faint); letter-spacing:.02em; }
   .hero .fineprint b { color: var(--seal); font-weight: 600; }
-  .reveal { opacity: 0; transform: translateY(14px); animation: rise .7s cubic-bezier(.2,.7,.2,1) forwards; }
-  .reveal.d1{animation-delay:.05s}.reveal.d2{animation-delay:.13s}.reveal.d3{animation-delay:.21s}.reveal.d4{animation-delay:.30s}
-  @keyframes rise { to { opacity:1; transform:none; } }
+  /* Content is visible by default; the fade-in only applies when motion is welcome,
+     so reduced-motion (or any disabled animation) never leaves the hero blank. */
+  @keyframes rise { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
+  @media (prefers-reduced-motion: no-preference){
+    .reveal { opacity: 0; transform: translateY(14px); animation: rise .7s cubic-bezier(.2,.7,.2,1) forwards; }
+    .reveal.d1{animation-delay:.05s}.reveal.d2{animation-delay:.13s}.reveal.d3{animation-delay:.21s}.reveal.d4{animation-delay:.30s}
+  }
 
   /* hero inbox mock */
   .mock {
